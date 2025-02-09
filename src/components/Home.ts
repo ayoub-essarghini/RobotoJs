@@ -1,4 +1,6 @@
-import { HttpClient } from "../services/HttpClient";
+import { createElement, VNode } from "../utils/vdom";
+import { HttpClient } from "../services/service";
+import { Component } from "../utils/types";
 
 export interface Post {
   userId: number;
@@ -7,59 +9,44 @@ export interface Post {
   body: string;
 }
 
-export class Home {
+export class Home implements Component {
   data: Post[] = [];
-  container: HTMLElement;
+  isLoading: boolean = true;
+  private onDataUpdated: () => void;
 
-  constructor() {
-    this.container = document.createElement("div"); 
+  constructor(onDataUpdated: () => void) {
+    this.onDataUpdated = onDataUpdated;
     const httpClient = new HttpClient();
     this.fetchData(httpClient);
   }
 
-
   async fetchData(httpClient: HttpClient) {
     try {
-      const response = await httpClient.get("https://jsonplaceholder.typicode.com/posts");
-      this.data = response;
-     
-      this.render(); 
+      const res = await httpClient.get("https://jsonplaceholder.typicode.com/posts");
+      this.data = res;
+      this.isLoading = false;
+      this.onDataUpdated(); // Trigger re-render after data is fetched
     } catch (err) {
       console.error(err);
+      this.isLoading = false;
+      this.onDataUpdated(); // Trigger re-render even if there's an error
     }
   }
 
-
-  render(): string {
-    console.log("start rendering...");
-    this.container.innerHTML = '';
-
-    if (this.data.length === 0) {
-      return this.container.innerHTML = "<div>Loading...</div>";
-     
+  render(): VNode {
+    if (this.isLoading) {
+      return createElement("div", {}, "Loading...");
     }
 
-
-   
-    for (let post of this.data) {
-      this.container.append(this.innerElement(post));
-      const hr = document.createElement("hr");
-      this.container.append(hr);
-    }
-
-
-
-    // console.log("here", this.container.outerHTML);
-    document.body.appendChild(this.container); 
-    return this.container.outerHTML;
+    const children = this.data.map(post => this.createPostVNode(post));
+    return createElement("div", {}, ...children);
   }
 
-  innerElement(post: Post): HTMLElement {
-    const div = document.createElement("div");
-    div.innerHTML = `
-        <div>title: ${post.title}</div>
-        <p>${post.body}</p>
-    `;
-    return div;
+  createPostVNode(post: Post): VNode {
+    return createElement("div", {},
+      createElement("div", {}, `Title: ${post.title}`),
+      createElement("p", {}, post.body),
+      createElement("hr", {})
+    );
   }
 }
