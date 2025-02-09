@@ -1,12 +1,22 @@
-import { parseHtml } from './utils/vdom'
+import { Router } from "./router";
+import { Home } from "./components/Home";
+import { About } from "./components/About";
+import { HttpClient } from "./services/HttpClient";
 
 
-let vdom = parseHtml( 
-    /* html */`
-    <h1 style="color:green">Hello</h1>
-    <p>This is a page</p>
-    <p>some more text</p>
-    `
-)
 
-console.log(vdom);
+const routes = [
+  { path: "/", component: Home },
+  { path: "/about", component: About },
+];
+
+const appContainer = document.getElementById("app")!;
+const router = new Router(routes, appContainer);
+
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+  if (target.tagName === "A" && target.getAttribute("href")) {
+    e.preventDefault();
+    router.navigate(target.getAttribute("href")!);
+  }
+});
