@@ -1,10 +1,6 @@
+import { createElement } from "../utils/vdom.js";
 export class About {
     render() {
-        return `
-        <div>
-          <h1>About Page</h1>
-          <p>This is the about page.</p>
-        </div>
-      `;
+        return createElement("button", { class: "bg-indigo-500 hover:bg-fuchsia-500" }, "About Page");
     }
 }

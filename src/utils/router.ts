@@ -1,4 +1,4 @@
-import { render, VNode } from "../utils/vdom";
+import { patch, VNode } from "../utils/vdom.js";
 
 export type Route = {
   path: string;
@@ -8,6 +8,7 @@ export type Route = {
 export class Router {
   private routes: Route[];
   private appContainer: HTMLElement;
+  private currentVNode: VNode | string = "";
 
   constructor(routes: Route[], appContainer: HTMLElement) {
     this.routes = routes;
@@ -27,19 +28,27 @@ export class Router {
     if (route) {
       const onDataUpdated = () => {
         const component = new route.component(onDataUpdated);
-        const vNode = component.render();
-        this.appContainer.innerHTML = ''; // Clear the container
-        this.appContainer.appendChild(render(vNode));
+        const newVNode = component.render();
+        patch(this.appContainer, newVNode, this.currentVNode);
+        this.currentVNode = newVNode;
       };
-
-      onDataUpdated(); // Initial render
+      this.appContainer.innerHTML = "";
+      onDataUpdated();
     } else {
-      this.appContainer.innerHTML = "<h1>404 - Page Not Found</h1>";
+      const newVNode = {
+        tag: "h1",
+        props: {},
+        children: ["404 - Page Not Found"],
+      };
+      patch(this.appContainer, newVNode, this.currentVNode);
+      this.currentVNode = newVNode;
     }
   }
 
   public navigate(path: string): void {
-    window.history.pushState({}, "", path);
-    this.route();
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+      this.route();
+    }
   }
 }
