@@ -1,6 +1,7 @@
-import { Component, createElement } from "../utils/vdom.js";
+import { Component } from "../utils/types.js";
+import { createElement } from "../utils/vdom.js";
 
-export class About implements Component {
+export class About implements Component{
   render() {
     return createElement("button", {class: "bg-indigo-500 hover:bg-fuchsia-500" }, "About Page");
 
