@@ -1,18 +1,24 @@
-import { patch } from "../utils/vdom.js";
+// utils/router.ts
+import { patch } from "./vdom.js";
 export class Router {
     constructor(routes, appContainer) {
-        this.currentVNode = "";
+        this.currentVNode = {
+            tag: 'div',
+            props: {},
+            children: []
+        };
         this.routes = routes;
         this.appContainer = appContainer;
         this.init();
     }
     init() {
         window.addEventListener("popstate", () => this.route());
-        document.addEventListener("DOMContentLoaded", () => this.route());
+        // Use setTimeout to ensure DOM is fully loaded
+        setTimeout(() => this.route(), 0);
     }
     route() {
         const path = window.location.pathname;
-        const route = this.routes.find((r) => r.path === path);
+        const route = this.routes.find((r) => r.path === path) || this.routes.find((r) => r.path === '/');
         if (route) {
             const onDataUpdated = () => {
                 const component = new route.component(onDataUpdated);
@@ -20,14 +26,17 @@ export class Router {
                 patch(this.appContainer, newVNode, this.currentVNode);
                 this.currentVNode = newVNode;
             };
-            this.appContainer.innerHTML = "";
+            // Clear container before first render if empty
+            if (!this.currentVNode.children || this.currentVNode.children.length === 0) {
+                this.appContainer.innerHTML = '';
+            }
             onDataUpdated();
         }
         else {
             const newVNode = {
                 tag: "h1",
                 props: {},
-                children: ["404 - Page Not Found"],
+                children: ["404 - Page Not Found"]
             };
             patch(this.appContainer, newVNode, this.currentVNode);
             this.currentVNode = newVNode;
