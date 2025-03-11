@@ -1,6 +1,8 @@
-// utils/router.ts
 import { patch } from "./vdom.js";
 export class Router {
+    get currentPath() {
+        return window.location.pathname;
+    }
     constructor(routes, appContainer) {
         this.currentVNode = {
             tag: 'div',
@@ -8,6 +10,7 @@ export class Router {
             children: []
         };
         this.activeComponent = null;
+        this.isNavigating = false;
         this.routes = routes;
         this.appContainer = appContainer;
         this.init();
@@ -18,8 +21,20 @@ export class Router {
         setTimeout(() => this.route(), 0);
     }
     route() {
+        // Prevent multiple simultaneous navigations
+        if (this.isNavigating) {
+            return;
+        }
+        this.isNavigating = true;
         const path = window.location.pathname;
-        const route = this.routes.find((r) => r.path === path) || this.routes.find((r) => r.path === '/');
+        let route = this.routes.find((r) => r.path === path);
+        if (!route) {
+            const wildcardRoute = this.routes.find((r) => r.path === "/*");
+            if (wildcardRoute) {
+                route = wildcardRoute;
+            }
+        }
+        this.updateNavigationVisibility();
         if (route) {
             // Create a callback that the component can use to signal updates
             const onDataUpdated = () => {
@@ -29,10 +44,14 @@ export class Router {
                     this.currentVNode = newVNode;
                 }
             };
-            // Clear container before first render if empty
-            if (!this.currentVNode.children || this.currentVNode.children.length === 0) {
-                this.appContainer.innerHTML = '';
-            }
+            // Clear the container completely before mounting a new component
+            this.appContainer.innerHTML = '';
+            // Reset current VNode to empty div
+            this.currentVNode = {
+                tag: 'div',
+                props: {},
+                children: []
+            };
             // Store the active component
             this.activeComponent = new route.component(onDataUpdated);
             const newVNode = this.activeComponent.render();
@@ -41,6 +60,7 @@ export class Router {
         }
         else {
             this.activeComponent = null;
+            this.appContainer.innerHTML = '';
             const newVNode = {
                 tag: "h1",
                 props: {},
@@ -48,6 +68,19 @@ export class Router {
             };
             patch(this.appContainer, newVNode, this.currentVNode);
             this.currentVNode = newVNode;
+        }
+        this.isNavigating = false;
+    }
+    updateNavigationVisibility() {
+        const navElement = document.querySelector('ul');
+        if (navElement) {
+            if (this.currentPath === '/login' ||
+                (!this.routes.some(r => r.path === this.currentPath) && this.currentPath !== '/')) {
+                navElement.style.display = 'none';
+            }
+            else {
+                navElement.style.display = 'block';
+            }
         }
     }
     navigate(path) {

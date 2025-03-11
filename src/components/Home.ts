@@ -18,9 +18,13 @@ export class Home implements Component {
   private isLoading: () => boolean;
   private setIsLoading: (value: boolean) => void;
 
+  private counter: () => number;
+  private setCounter: (value: number) => void;
+
   constructor(onDataUpdated: () => void) {
     this.onDataUpdated = onDataUpdated;
     [this.posts, this.setPosts] = useState<Post[]>([]);
+    [this.counter, this.setCounter] = useState<number>(0);
     [this.isLoading, this.setIsLoading] = useState<boolean>(false);
 
     this.fetchPosts();
@@ -38,10 +42,13 @@ export class Home implements Component {
         this.setIsLoading(false);
         this.onDataUpdated();
       }
-      , 3000);
-      // this.setIsLoading(false);
-      // this.onDataUpdated();
+      , 0);
     }
+  }
+  updateCounter():void
+  {
+    this.setCounter(this.counter() + 1);
+    this.onDataUpdated();
   }
   render(): VNode {
     return {
@@ -49,11 +56,24 @@ export class Home implements Component {
       tag: "div",
       props: { class: "container mx-auto p-4" },
       children: [
+        {
+          tag: "button",
+          props: { class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" ,
+            onclick: () => this.updateCounter()
+          },
+          children: ["Click me"],
+        },
+        {
+          tag: "p",
+          props: { class: "text-center text-gray-600 mt-4" },
+          children: [`Button clicked: ${this.counter()} times`],
+        },
         this.isLoading() ? this.Loading() : {
           tag: "div",
           props: {class: "grid grid-cols-3 gap-4"},
           children: this.posts().map((post) => this.Card(post)),
-        },
+        }
+       
       ],
       
     }

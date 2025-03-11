@@ -9,6 +9,14 @@ export function render(vNode) {
     if (typeof vNode === "string") {
         return document.createTextNode(vNode);
     }
+    // Handle Fragment
+    if (vNode.tag === 'fragment') {
+        const fragment = document.createDocumentFragment();
+        vNode.children.forEach((child) => {
+            fragment.appendChild(render(child));
+        });
+        return fragment;
+    }
     const element = document.createElement(vNode.tag);
     // Set attributes and event handlers
     for (const [key, value] of Object.entries(vNode.props || {})) {
