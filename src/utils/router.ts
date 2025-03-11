@@ -1,4 +1,5 @@
-import { patch, VNode } from "../utils/vdom.js";
+// utils/router.ts
+import { patch, VNode } from "./vdom.js";
 
 export type Route = {
   path: string;
@@ -8,7 +9,12 @@ export type Route = {
 export class Router {
   private routes: Route[];
   private appContainer: HTMLElement;
-  private currentVNode: VNode | string = "";
+  private currentVNode: VNode = {
+    tag: 'div',
+    props: {},
+    children: []
+  };
+  private activeComponent: any = null;
 
   constructor(routes: Route[], appContainer: HTMLElement) {
     this.routes = routes;
@@ -18,27 +24,41 @@ export class Router {
 
   private init(): void {
     window.addEventListener("popstate", () => this.route());
-    document.addEventListener("DOMContentLoaded", () => this.route());
+    
+    // Use setTimeout to ensure DOM is fully loaded
+    setTimeout(() => this.route(), 0);
   }
 
   private route(): void {
     const path = window.location.pathname;
-    const route = this.routes.find((r) => r.path === path);
+    const route = this.routes.find((r) => r.path === path) || this.routes.find((r) => r.path === '/');
 
     if (route) {
+      // Create a callback that the component can use to signal updates
       const onDataUpdated = () => {
-        const component = new route.component(onDataUpdated);
-        const newVNode = component.render();
-        patch(this.appContainer, newVNode, this.currentVNode);
-        this.currentVNode = newVNode;
+        if (this.activeComponent) {
+          const newVNode = this.activeComponent.render();
+          patch(this.appContainer, newVNode, this.currentVNode);
+          this.currentVNode = newVNode;
+        }
       };
-      this.appContainer.innerHTML = "";
-      onDataUpdated();
+      
+      // Clear container before first render if empty
+      if (!this.currentVNode.children || this.currentVNode.children.length === 0) {
+        this.appContainer.innerHTML = '';
+      }
+      
+      // Store the active component
+      this.activeComponent = new route.component(onDataUpdated);
+      const newVNode = this.activeComponent.render();
+      patch(this.appContainer, newVNode, this.currentVNode);
+      this.currentVNode = newVNode;
     } else {
-      const newVNode = {
+      this.activeComponent = null;
+      const newVNode: VNode = {
         tag: "h1",
         props: {},
-        children: ["404 - Page Not Found"],
+        children: ["404 - Page Not Found"]
       };
       patch(this.appContainer, newVNode, this.currentVNode);
       this.currentVNode = newVNode;
