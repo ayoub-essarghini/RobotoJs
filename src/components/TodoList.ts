@@ -54,14 +54,14 @@ export class TodoList implements Component {
     );
     this.setTodos(updatedTodos);
 
-    this.render();
+   this.onDataUpdated();
   }
 
   deleteTodo(id: number): void {
     const filteredTodos = this.todos().filter(todo => todo.id !== id);
     this.setTodos(filteredTodos);
     
-    this.render();
+  this.onDataUpdated();
   }
 
   render(): VNode {
