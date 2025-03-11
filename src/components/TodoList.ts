@@ -14,8 +14,10 @@ export class TodoList implements Component {
   private setTodos: (value: Todo[]) => void;
   private inputValue: () => string;
   private setInputValue: (value: string) => void;
+  private onDataUpdated: () => void;
 
-  constructor() {
+  constructor(onDataUpdated: () => void) {
+    this.onDataUpdated = onDataUpdated;
     [this.todos, this.setTodos] = useState<Todo[]>([]);
     [this.inputValue, this.setInputValue] = useState<string>('');
     this.setTodos([
@@ -25,6 +27,8 @@ export class TodoList implements Component {
       {id: 4, text: 'Learn Vue', completed: false}
     ]);
   }
+
+  
 
   addTodo(): void {
     console.log('Adding todo...');
@@ -40,7 +44,7 @@ export class TodoList implements Component {
         console.log(this.todos()[i].text);
       }
       // console.log('Todo added:', newTodo);
-      this.render();
+      this.onDataUpdated();
     }
   }
 

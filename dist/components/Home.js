@@ -1,14 +1,13 @@
 import { useState } from "../core/core.js";
 export class Home {
-    constructor() {
-        // Initialize the counter state with useState
-        [this.counter, this.setCounter] = useState(10); // Using state for the counter
+    constructor(onDataUpdated) {
+        this.onDataUpdated = onDataUpdated;
+        [this.counter, this.setCounter] = useState(10);
     }
-    // Increment counter function
     incrementCounter() {
         console.log("Incrementing counter...");
-        this.setCounter(this.counter() + 1); // Increment the counter
-        this.render(); // Manually trigger re-render after state change
+        this.setCounter(this.counter() + 1);
+        this.onDataUpdated(); // Use the callback instead of this.render()
     }
     render() {
         return {

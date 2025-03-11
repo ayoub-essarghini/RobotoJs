@@ -1,6 +1,7 @@
 import { useState } from "../core/core.js";
 export class TodoList {
-    constructor() {
+    constructor(onDataUpdated) {
+        this.onDataUpdated = onDataUpdated;
         [this.todos, this.setTodos] = useState([]);
         [this.inputValue, this.setInputValue] = useState('');
         this.setTodos([
@@ -24,7 +25,7 @@ export class TodoList {
                 console.log(this.todos()[i].text);
             }
             // console.log('Todo added:', newTodo);
-            this.render();
+            this.onDataUpdated();
         }
     }
     toggleTodo(id) {
