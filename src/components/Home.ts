@@ -2,20 +2,21 @@ import { VNode } from "../utils/vdom.js";
 import { Component } from "../utils/types.js";
 import { useState } from "../core/core.js";
 
+
 export class Home implements Component {
   private counter: () => number;
   private setCounter: (value: number) => void;
+  private onDataUpdated: () => void;
 
-  constructor() {
-    // Initialize the counter state with useState
-    [this.counter, this.setCounter] = useState(10); // Using state for the counter
+  constructor(onDataUpdated: () => void) {
+    this.onDataUpdated = onDataUpdated;
+    [this.counter, this.setCounter] = useState(10);
   }
 
-  // Increment counter function
   incrementCounter(): void {
     console.log("Incrementing counter...");
-    this.setCounter(this.counter() + 1); // Increment the counter
-    this.render(); // Manually trigger re-render after state change
+    this.setCounter(this.counter() + 1);
+    this.onDataUpdated(); // Use the callback instead of this.render()
   }
 
   render(): VNode {
@@ -44,4 +45,7 @@ export class Home implements Component {
       ]
     };
   }
+
+
 }
+

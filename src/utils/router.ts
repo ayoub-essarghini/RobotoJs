@@ -14,6 +14,7 @@ export class Router {
     props: {},
     children: []
   };
+  private activeComponent: any = null;
 
   constructor(routes: Route[], appContainer: HTMLElement) {
     this.routes = routes;
@@ -33,11 +34,13 @@ export class Router {
     const route = this.routes.find((r) => r.path === path) || this.routes.find((r) => r.path === '/');
 
     if (route) {
+      // Create a callback that the component can use to signal updates
       const onDataUpdated = () => {
-        const component = new route.component(onDataUpdated);
-        const newVNode = component.render();
-        patch(this.appContainer, newVNode, this.currentVNode);
-        this.currentVNode = newVNode;
+        if (this.activeComponent) {
+          const newVNode = this.activeComponent.render();
+          patch(this.appContainer, newVNode, this.currentVNode);
+          this.currentVNode = newVNode;
+        }
       };
       
       // Clear container before first render if empty
@@ -45,8 +48,13 @@ export class Router {
         this.appContainer.innerHTML = '';
       }
       
-      onDataUpdated();
+      // Store the active component
+      this.activeComponent = new route.component(onDataUpdated);
+      const newVNode = this.activeComponent.render();
+      patch(this.appContainer, newVNode, this.currentVNode);
+      this.currentVNode = newVNode;
     } else {
+      this.activeComponent = null;
       const newVNode: VNode = {
         tag: "h1",
         props: {},
