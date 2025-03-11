@@ -19,11 +19,18 @@ export function createElement(
 }
 
 // Fixed render function to properly handle event listeners
-export function render(vNode: VNode | string): Node {
+export function render(vNode: VNode | string): Node  | DocumentFragment  {
   if (typeof vNode === "string") {
     return document.createTextNode(vNode);
   }
-
+ // Handle Fragment
+ if (vNode.tag === 'fragment') {
+  const fragment = document.createDocumentFragment();
+  vNode.children.forEach((child) => {
+    fragment.appendChild(render(child) as Node);
+  });
+  return fragment;
+}
   const element = document.createElement(vNode.tag);
 
   // Set attributes and event handlers
