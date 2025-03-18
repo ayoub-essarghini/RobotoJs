@@ -1,19 +1,14 @@
-import { patch, VNode } from "./vdom.js";
+import { createApp, h, ComponentInstance, VNode } from '../core/roboto.js'; 
 
 export type Route = {
   path: string;
-  component: { new (onDataUpdated: () => void): { render: () => VNode } };
+  component: () => VNode;
 };
 
 export class Router {
   private routes: Route[];
   private appContainer: HTMLElement;
-  private currentVNode: VNode = {
-    tag: 'div',
-    props: {},
-    children: []
-  };
-  private activeComponent: any = null;
+  private currentInstance: ComponentInstance | null = null;
   private isNavigating: boolean = false;
 
   private get currentPath(): string {
@@ -28,20 +23,17 @@ export class Router {
 
   private init(): void {
     window.addEventListener("popstate", () => this.route());
-    
-    // Use setTimeout to ensure DOM is fully loaded
-    setTimeout(() => this.route(), 0);
+    setTimeout(() => this.route(), 0); // Ensure DOM is loaded
   }
 
   private route(): void {
-    // Prevent multiple simultaneous navigations
     if (this.isNavigating) {
       return;
     }
     
     this.isNavigating = true;
     
-    const path = window.location.pathname;
+    const path = this.currentPath;
     let route = this.routes.find((r) => r.path === path);
 
     if (!route) {
@@ -50,51 +42,39 @@ export class Router {
         route = wildcardRoute;
       }
     }
+
     this.updateNavigationVisibility();
+
     if (route) {
-      // Create a callback that the component can use to signal updates
-      const onDataUpdated = () => {
-        if (this.activeComponent) {
-          const newVNode = this.activeComponent.render();
-          patch(this.appContainer, newVNode, this.currentVNode);
-          this.currentVNode = newVNode;
-        }
-      };
-      
-      // Clear the container completely before mounting a new component
-      this.appContainer.innerHTML = '';
-      
-      // Reset current VNode to empty div
-      this.currentVNode = {
-        tag: 'div',
-        props: {},
-        children: []
-      };
-      
-      // Store the active component
-      this.activeComponent = new route.component(onDataUpdated);
-      const newVNode = this.activeComponent.render();
-      patch(this.appContainer, newVNode, this.currentVNode);
-      this.currentVNode = newVNode;
+      // Unmount previous instance if it exists
+      if (this.currentInstance) {
+        this.currentInstance.unmount();
+        this.appContainer.innerHTML = ''; // Clear the container
+      }
+
+      // Create a wrapper component that calls the route's component
+      const RouteComponent = () => route!.component();
+
+      // Mount the new component
+      const app = createApp(RouteComponent);
+      this.currentInstance = app.mount(this.appContainer);
     } else {
-      this.activeComponent = null;
- 
-      this.appContainer.innerHTML = '';
-      
-      const newVNode: VNode = {
-        tag: "h1",
-        props: {},
-        children: ["404 - Page Not Found"]
-      };
-      patch(this.appContainer, newVNode, this.currentVNode);
-      this.currentVNode = newVNode;
+      // Handle 404 case
+      if (this.currentInstance) {
+        this.currentInstance.unmount();
+        this.appContainer.innerHTML = '';
+      }
+
+      const NotFoundComponent = () => h("h1", null, "404 - Page Not Found");
+      const app = createApp(NotFoundComponent);
+      this.currentInstance = app.mount(this.appContainer);
     }
     
     this.isNavigating = false;
   }
 
   private updateNavigationVisibility(): void {
-    const navElement = document.querySelector('ul');
+    const navElement = document.querySelector('ul') as HTMLElement | null;
     if (navElement) {
       if (this.currentPath === '/login' || 
           (!this.routes.some(r => r.path === this.currentPath) && this.currentPath !== '/')) {

@@ -1,14 +1,14 @@
-// main.ts
 import { routes } from "./routes.js";
 import { Router } from "./utils/router.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const appContainer = document.getElementById("app");
-  
-  if (!appContainer) {
-    console.error("App container not found!");
-    return;
-  }
-  
-  
+const appContainer = document.getElementById('root') as HTMLElement;
+const router = new Router(routes, appContainer);
+
+// Example navigation (optional)
+document.querySelectorAll('a[data-navigate]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const path = link.getAttribute('data-navigate')!;
+    router.navigate(path);
+  });
 });
