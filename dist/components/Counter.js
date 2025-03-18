@@ -1,25 +1,16 @@
-import { useState } from "../core/core";
-export class Counter extends Component {
-    constructor() {
-        super(document.getElementById("app"));
-        [this.counter, this.setCounter] = useState(0);
-    }
-    incrementCounter() {
-        this.setCounter(this.counter() + 1);
-        this.setState(); // Auto-update UI
-    }
-    render() {
-        return {
-            tag: "div",
-            props: { class: "counter-container" },
-            children: [
-                { tag: "p", props: {}, children: [`Counter: ${this.counter()}`] },
-                {
-                    tag: "button",
-                    props: { onclick: () => this.incrementCounter() },
-                    children: ["Increment"]
-                }
-            ]
-        };
-    }
-}
+import { h } from "../core/roboto.js";
+import { useState, useEffect } from "../core/roboto.js";
+// Example Usage
+export const Counter = (props) => {
+    const [count, setCount] = useState(props.count || 0);
+    useEffect(() => {
+        console.log('Count changed:', count);
+        return () => console.log('Cleanup:', count);
+    }, [count]);
+    return (h("div", null,
+        h("p", { className: "bg-red-500 text" },
+            "Count: ",
+            count),
+        h("button", { onClick: () => setCount(count - 1) }, "-"),
+        h("button", { onClick: () => setCount(count + 1) }, "+")));
+};
