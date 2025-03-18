@@ -109,6 +109,9 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   }
 }
