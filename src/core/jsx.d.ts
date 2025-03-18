@@ -1,11 +1,11 @@
-import { RobotoElement } from './roboto';
+import { VNode } from './roboto';
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
       [elemName: string]: any;
     }
-    interface Element extends RobotoElement {}
+    interface Element extends VNode {}
   }
 }
 
